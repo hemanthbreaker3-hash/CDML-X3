@@ -152,7 +152,14 @@ done
 }
 echo "PO-token HTTP provider is listening on localhost:4416"
 CANTARELLABOTS_MEGA_SDK_VERSION="10.20.20" venv/bin/python -m pip install --no-deps 'mega.py>=1.0.8'
-chmod +x start.sh deploy.vps one-click-deploy.sh 2>/dev/null || true
+# Normalize startup/deployment scripts before systemd is configured.
+for script in start.sh deploy.vps one-click-deploy.sh fix-systemd-service.sh; do
+  if [[ -f "$script" ]]; then
+    sed -i 's/\r$//' "$script"
+    chmod 755 "$script"
+  fi
+done
+[[ -x /bin/bash ]] || fail "/bin/bash is missing or not executable"
 
 # Validate config.py directly; never source Python config as shell or require .env.
 echo "[3/6] Validating config.py and required settings..."
@@ -161,16 +168,18 @@ BOT_TOKEN="$BOT_TOKEN" venv/bin/python - <<'PYCFG'
 import config
 import os
 required = ('OWNER_ID', 'TELEGRAM_API', 'TELEGRAM_HASH')
+resolved = {}
 for key in required:
-    value = getattr(config, key, None)
+    value = os.environ.get(key, getattr(config, key, None))
+    resolved[key] = value
     if value is None or value == '' or value == 0:
-        raise SystemExit(f'Invalid or missing config.py setting: {key}')
+        raise SystemExit(f'Invalid or missing {key}: set/export it or configure it in config.py')
 token = os.environ.get('BOT_TOKEN', '').strip()
 if token.count(':') != 1:
     raise SystemExit('BOT_TOKEN environment variable does not look valid')
 try:
-    int(config.OWNER_ID)
-    int(config.TELEGRAM_API)
+    int(resolved["OWNER_ID"])
+    int(resolved["TELEGRAM_API"])
 except (TypeError, ValueError):
     raise SystemExit('OWNER_ID and TELEGRAM_API in config.py must be numeric')
 print('config.py syntax and required settings: OK; BOT_TOKEN environment variable validated (values hidden)')
@@ -290,7 +299,7 @@ StartLimitBurst=5
 Type=simple
 User=root
 WorkingDirectory=$APP_DIR
-ExecStart=$APP_DIR/start.sh
+ExecStart=/bin/bash $APP_DIR/start.sh
 Restart=on-failure
 RestartSec=8
 EnvironmentFile=/etc/cantarellabots_bot.env
@@ -311,6 +320,7 @@ systemctl reset-failed "${SERVICE_NAME}.service" || true
 systemctl restart "${SERVICE_NAME}.service"
 sleep 8
 if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+  systemctl show "${SERVICE_NAME}.service" -p ExecStart -p WorkingDirectory -p FragmentPath -p DropInPaths || true
   systemctl status "${SERVICE_NAME}.service" --no-pager -l || true
   journalctl -u "${SERVICE_NAME}.service" -n 140 --no-pager || true
   fail "Bot service did not stay active. Review the error above."

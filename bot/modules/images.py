@@ -13,9 +13,10 @@ from ..helper.telegram_helper.message_utils import (
 @new_task
 async def picture_add(_, message):
     resm = message.reply_to_message
+    command = message.command or []
     editable = await send_message(message, "<b>Processing image input...</b>")
-    if len(message.command) > 1 or resm and resm.text:
-        msg_text = resm.text if resm else message.command[1]
+    if len(command) > 1 or resm and resm.text:
+        msg_text = resm.text if resm else command[1]
         if not msg_text.startswith("http"):
             return await edit_message(
                 editable, "<blockquote>Invalid URL! Link must start with 'http'.</blockquote>"

@@ -103,17 +103,18 @@ async def broadcast(_, message):
             message, "DATABASE_URL is required to fetch database users!"
         )
     rply = message.reply_to_message
-    if len(message.command) > 1:
-        if not message.command[1].startswith("-"):
+    command = message.command or []
+    if len(command) > 1:
+        if not command[1].startswith("-"):
             bc_id = (
-                message.command[1] if bc_cache.get(message.command[1], False) else ""
+                command[1] if bc_cache.get(command[1], False) else ""
             )
             if not bc_id:
                 return await send_message(
                     message,
                     "<blockquote>Broadcast ID not found in cache. Cached broadcasts are lost after bot restart.</blockquote>",
                 )
-        for arg in message.command:
+        for arg in command:
             if arg in ["-f", "-forward"] and rply:
                 forwarded = True
             if arg in ["-q", "-quiet"] and rply:

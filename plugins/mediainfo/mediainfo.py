@@ -138,6 +138,7 @@ def parseinfo(out, size):
 
 async def mediainfo(_, message):
     rply = message.reply_to_message
+    command = message.command or []
     cmd = f"mediainfo{Config.CMD_SUFFIX}"
     alias = f"mi{Config.CMD_SUFFIX}"
     help_msg = f"""
@@ -147,8 +148,8 @@ async def mediainfo(_, message):
 <b>By reply/sending download link:</b>
 <code>/{cmd} or /{alias} [link]</code>
 """
-    if len(message.command) > 1 or rply and rply.text:
-        link = rply.text if rply else message.command[1]
+    if len(command) > 1 or rply and rply.text:
+        link = rply.text if rply else command[1]
         return await gen_mediainfo(message, link)
     elif rply:
         if file := next(

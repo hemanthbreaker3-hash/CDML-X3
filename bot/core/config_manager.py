@@ -24,6 +24,12 @@ class Config:
     BOT_MAX_TASKS = 0
     BOT_PM = False
     CMD_SUFFIX = ""
+    START_REPO_URL = ""
+    START_REPO_BUTTON = "Repository"
+    START_UPDATE_URL = ""
+    START_UPDATE_BUTTON = "Updates"
+    START_DEV_URL = ""
+    START_DEV_BUTTON = "TENKA IZUMO"
     DEFAULT_LANG = "en"
     DATABASE_URL = ""
     DEFAULT_UPLOAD = "rc"

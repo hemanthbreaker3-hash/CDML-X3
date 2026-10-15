@@ -1,15 +1,8 @@
-HTR-X VPS deployment (config.py)
-================================
-1. Upload and extract this folder on an Ubuntu/Debian VPS.
-2. Edit config.py and fill BOT_TOKEN, OWNER_ID, TELEGRAM_API, TELEGRAM_HASH and any other settings.
-3. Run from this folder as root:
-      bash one-click-deploy.sh
-   Or: sudo bash one-click-deploy.sh
-4. Check:
-      systemctl status cantarellabots_bot --no-pager -l
-      journalctl -u cantarellabots_bot -f
+HTR-X VPS deployment
+====================
+1. Clone the repository.
+2. Copy `.env.example` to `.env` and fill BOT_TOKEN, OWNER_ID, TELEGRAM_API, TELEGRAM_HASH and DATABASE_URL as needed. Do not commit .env.
+3. Set optional CMD_SUFFIX and START_REPO_URL/START_REPO_BUTTON, START_UPDATE_URL/START_UPDATE_BUTTON, START_DEV_URL/START_DEV_BUTTON. Empty URL hides that button; default repository/update/developer links are used when URL is empty.
+4. Run `bash deploy-all.sh` for the scripted deployment, or run `./deploy.vps` after exporting variables.
 
-This deployment reads credentials from config.py and does not require .env.
-The script validates required settings and confirms the systemd service is active,
-but successful Telegram/MongoDB connectivity still depends on valid credentials,
-network access, and the upstream dependencies being available.
+`deploy-all.sh` sources `.env` and exports variables before invoking the deployment script.

@@ -33,10 +33,13 @@ from ..helper.telegram_helper.message_utils import (
 async def _build_start_buttons():
     buttons = ButtonMaker()
     lang = Language()
-    buttons.url_button(
-        lang.START_BUTTON1, "https://github.com/abhinai2244/CBML", "header"
-    )
-    buttons.url_button(lang.START_BUTTON2, "https://t.me/cantarellabots", "header")
+    repo_url = (Config.START_REPO_URL or "https://github.com/abhinai2244/CBML").strip()
+    update_url = (Config.START_UPDATE_URL or "https://t.me/cantarellabots").strip()
+    dev_url = (Config.START_DEV_URL or "https://t.me/cantarella_wuwa").strip()
+    if repo_url:
+        buttons.url_button(Config.START_REPO_BUTTON or lang.START_BUTTON1, repo_url, "header")
+    if update_url:
+        buttons.url_button(Config.START_UPDATE_BUTTON or lang.START_BUTTON2, update_url, "header")
 
     chat_ids = list(auth_chats.keys())
     if Config.AUTHORIZED_CHATS:
@@ -70,12 +73,13 @@ async def _build_start_buttons():
             if link:
                 buttons.url_button(title, link, position="default")
 
-    buttons.url_button(
-        "TENKA IZUMO",
-        "https://t.me/cantarella_wuwa",
-        position="footer",
-        style=ButtonStyle.DANGER,
-    )
+    if dev_url:
+        buttons.url_button(
+            Config.START_DEV_BUTTON or "TENKA IZUMO",
+            dev_url,
+            position="footer",
+            style=ButtonStyle.DANGER,
+        )
 
     return buttons.build_menu(b_cols=3, h_cols=2, f_cols=1)
 
@@ -88,14 +92,15 @@ async def start(_, message):
 
     # Deep link used by the API manager's group-to-DM button. Accept the
     # plain payload and future api_* payloads, and always open the manager in DM.
-    if len(message.command) > 1 and message.command[1].split("_", 1)[0].lower() == "api":
+    command = message.command or (message.text or "").split()
+    if len(command) > 1 and command[1].split("_", 1)[0].lower() == "api":
         from .api_manager import api_command
         return await api_command(_, message)
 
-    if len(message.command) > 1 and message.command[1] in ("wzmlx", "htrx"):
+    if len(command) > 1 and command[1] in ("wzmlx", "htrx"):
         await delete_message(message)
-    elif len(message.command) > 1 and message.command[1] != "start":
-        decrypted_url = decode_slink(message.command[1])
+    elif len(command) > 1 and command[1] != "start":
+        decrypted_url = decode_slink(command[1])
         if Config.MEDIA_STORE and decrypted_url.startswith("file"):
             decrypted_url = decrypted_url.replace("file", "")
             chat_id, msg_id = decrypted_url.split("&&")
@@ -209,7 +214,7 @@ async def start_cb(_, query):
 async def login(_, message):
     if Config.LOGIN_PASS is None:
         return await send_message(message, "<blockquote>Login password feature is not enabled.</blockquote>")
-    elif len(message.command) > 1:
+    elif len(message.command or []) > 1:
         user_id = message.from_user.id
         input_pass = message.command[1]
 
