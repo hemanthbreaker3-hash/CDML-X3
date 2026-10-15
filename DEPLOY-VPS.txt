@@ -1,0 +1,8 @@
+HTR-X VPS deployment
+====================
+1. Clone the repository.
+2. Copy `.env.example` to `.env` and fill BOT_TOKEN, OWNER_ID, TELEGRAM_API, TELEGRAM_HASH and DATABASE_URL as needed. Do not commit .env.
+3. Set optional CMD_SUFFIX and START_REPO_URL/START_REPO_BUTTON, START_UPDATE_URL/START_UPDATE_BUTTON, START_DEV_URL/START_DEV_BUTTON. Empty URL hides that button; default repository/update/developer links are used when URL is empty.
+4. Run `bash deploy-all.sh` for the scripted deployment, or run `./deploy.vps` after exporting variables.
+
+`deploy-all.sh` sources `.env` and exports variables before invoking the deployment script.
